@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Retourbewijs & Retourlabel – Print (CO-RE groot, NL/FR)</title>
+  <style>
+    :root{
+      --w:210mm; --h:297mm; --pad:14mm;
+      --font: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+    html,body{margin:0;padding:0;font-family:var(--font);color:#000}
+    .app{max-width:960px;margin:24px auto;padding:16px}
+    .card{border:1px solid #ddd;border-radius:12px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .row>label{flex:1 1 260px;display:flex;flex-direction:column;font-size:14px}
+    input,select,textarea{padding:10px;border-radius:8px;border:1px solid #ccc;font-size:16px}
+    textarea{min-height:80px}
+    .actions{display:flex;gap:12px;align-items:center;margin-top:16px;flex-wrap:wrap}
+    .btn{background:#111;color:#fff;border:0;border-radius:10px;padding:12px 16px;font-weight:600;cursor:pointer}
+    .btn.secondary{background:#444}
+    .hint{font-size:12px;color:#555}
+
+    .page{position:relative;width:var(--w);height:var(--h);page-break-after:always;background:#fff;overflow:hidden}
+    .content{position:absolute;left:var(--pad);right:var(--pad);top:var(--pad)}
+    .h1{font-size:20pt;font-weight:700;margin:0 0 10mm 0}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:6mm 12mm;font-size:12pt}
+    .label{font-weight:700;margin-right:6px}
+    .field{border-bottom:1px solid #000;padding:2mm 0;min-height:14pt}
+    .subtext{font-size:10pt;margin-top:8mm;line-height:1.35}
+    .signs{display:grid;grid-template-columns:1fr 1fr;gap:12mm;margin-top:14mm}
+    .sign{border-top:1px solid #000;padding-top:4mm;text-align:center;font-size:10pt}
+
+    /* Large CO-RE label occupying most of top half */
+    .label-stack{
+      position:absolute; top:18mm; left:50%; transform:translateX(-50%);
+      width: calc(210mm - 2 * var(--pad)); max-width: 182mm; text-align:center; line-height:1.02;
+      overflow:hidden;
+    }
+    .label-stack .core{
+      font-size: 150pt; /* very large (~53mm cap height) */
+      font-weight: 900; letter-spacing: 4pt; margin: 0;
+      white-space: nowrap; word-break: keep-all;
+    }
+    .label-note{position:absolute;left:10mm;bottom:10mm;font-size:10pt;opacity:.75}
+
+    @media print {
+      body{background:#fff}
+      .app{display:none}
+      @page { size: A4; margin: 10mm; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app card">
+    <h2 style="margin-top:0">Retourbewijs + Retourlabel printen / Imprimer récépissé + étiquette de retour</h2>
+    <p class="hint">Vul de gegevens in, kies de taal en klik op <b>Print / Imprimer</b>. Er worden automatisch <b>3</b> ontvangstbewijzen en <b>1</b> retourlabel geprint in één taak. | Renseignez les données, choisissez la langue et cliquez <b>Print / Imprimer</b>. Cela imprimera automatiquement <b>3</b> accusés de réception et <b>1</b> étiquette de retour.</p>
+
+    <div class="row">
+      <label>Taal / Langue
+        <select id="lang">
+          <option value="nl" selected>Nederlands</option>
+          <option value="fr">Français</option>
+        </select>
+      </label>
+      <label>Datum / Date
+        <input id="date" type="date" />
+      </label>
+      <label>Contractnummer / N° de contrat
+        <input id="contract" type="text" />
+      </label>
+      <label>Winkelnummer / N° de magasin
+        <input id="store" type="text" />
+      </label>
+      <label>Klantnummer / N° client
+        <input id="customer" type="text" />
+      </label>
+      <label>Peros order nummers / N° de commande Peros
+        <textarea id="orders" placeholder="b.v. 12345, 67890 / ex. 12345, 67890"></textarea>
+      </label>
+    </div>
+
+    <div class="row">
+      <label>Aantal ontvangstbewijzen (standaard 3) / Nb d'accusés (3 par défaut)
+        <input id="copiesReceipt" type="number" min="1" value="3" />
+      </label>
+      <label>Aantal labels (standaard 1) / Nb d'étiquettes (1 par défaut)
+        <input id="copiesLabel" type="number" min="0" value="1" />
+      </label>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="printBtn">Print / Imprimer</button>
+      
+    </div>
+  </div>
+
+  
+<script>
+(function(){
+  var dateField = document.getElementById('date');
+  if (dateField && !dateField.value) {
+    var today = new Date();
+    var yyyy = today.getFullYear();
+    var mm = String(today.getMonth() + 1).padStart(2, '0');
+    var dd = String(today.getDate()).padStart(2, '0');
+    dateField.value = yyyy + '-' + mm + '-' + dd;
+  }
+})();
+</script>
+<script>
+    const I18N = {
+      nl: {
+        title: 'Ontvangstbewijs',
+        p1: 'Wij bevestigen de ontvangst van de gehuurde producten. De eventuele betalingsverplichting van de openstaande bedragen en additionele kosten komen hiermee niet te vervallen. Wij verwijzen u voor meer informatie naar artikel 9 van de algemene voorwaarden Pearle Bril Plan.',
+        date: 'Datum', contract:'Contractnummer', store:'Winkelnummer', customer:'Klantnummer', orders:'Peros order nummers',
+        sigCustomer:'Handtekening klant', sigStore:'Handtekening winkel',
+        labelNote:'Retourlabel – plak op de verpakking'
+      },
+      fr: {
+        title: 'Accusé de réception',
+        p1: "Nous confirmons la réception des produits loués. L'obligation de paiement des montants ouverts et des frais supplémentaires n'est pas annulée. Pour plus d'informations, voir l'article 9 des conditions générales du Pearle Bril Plan.",
+        date: 'Date', contract:'N° de contrat', store:'N° de magasin', customer:'N° client', orders:'N° de commande Peros',
+        sigCustomer:'Signature client', sigStore:'Signature magasin',
+        labelNote:'Étiquette de retour – à coller sur le colis'
+      }
+    };
+    const $ = (id)=>document.getElementById(id);
+
+    function collect(){
+      return {
+        lang: $('lang').value,
+        date: $('date').value ? new Date($('date').value).toLocaleDateString($('lang').value==='fr'?'fr-BE':'nl-BE') : '',
+        contract: $('contract').value.trim(),
+        store: $('store').value.trim(),
+        customer: $('customer').value.trim(),
+        orders: $('orders').value.trim(),
+        copiesReceipt: Math.max(1, parseInt($('copiesReceipt').value||'3',10)),
+        copiesLabel: Math.max(0, parseInt($('copiesLabel').value||'1',10))
+      };
+    }
+
+    function openPrintWindow(values, autoPrint){
+      const w = window.open('', '_blank');
+      if(!w){ alert('Pop-up geblokkeerd. Sta pop-ups toe voor deze site en probeer opnieuw. / Fenêtre pop-up bloquée. Autorisez les pop-ups pour ce site.'); return; }
+      const L = I18N[values.lang];
+      const doc = w.document;
+
+      // Build print skeleton with styles
+      doc.open();
+      doc.write('<!doctype html><html><head><meta charset=\"utf-8\"><title>Print – Retour</title><style>@page{size:A4;margin:10mm}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#000}.page{position:relative;width:210mm;height:297mm;page-break-after:always;background:#fff;overflow:hidden}.content{position:absolute;left:14mm;right:14mm;top:14mm}.h1{font-size:20pt;font-weight:700;margin:0 0 10mm 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:6mm 12mm;font-size:12pt}.label{font-weight:700;margin-right:6px}.field{border-bottom:1px solid #000;padding:2mm 0;min-height:14pt}.subtext{font-size:10pt;margin-top:8mm;line-height:1.35}.signs{display:grid;grid-template-columns:1fr 1fr;gap:12mm;margin-top:14mm}.sign{border-top:1px solid #000;padding-top:4mm;text-align:center;font-size:10pt}.label-stack{position:absolute;top:18mm;left:50%;transform:translateX(-50%);width:182mm;text-align:center;line-height:1.02;overflow:hidden}.label-stack .core{font-size:150pt;font-weight:900;letter-spacing:4pt;margin:0;white-space:nowrap}.label-note{position:absolute;left:10mm;bottom:10mm;font-size:10pt;opacity:.75}</style></head><body></body></html>');
+      doc.close();
+
+      function mk(tag, cls){ const el = doc.createElement(tag); if(cls) el.className = cls; return el; }
+
+      function addReceipt(){
+        const page = mk('section','page');
+        const content = mk('div','content');
+        const h1 = mk('h1','h1'); h1.textContent = L.title; content.appendChild(h1);
+
+        const grid = mk('div','grid');
+        const addRow = (label, val) => {
+          const cell = mk('div');
+          const lbl = mk('span','label'); lbl.textContent = label + ': ';
+          const field = mk('div','field'); field.textContent = val || '';
+          cell.appendChild(lbl); cell.appendChild(field);
+          grid.appendChild(cell);
+        };
+        addRow(L.date, values.date);
+        addRow(L.contract, values.contract);
+        addRow(L.store, values.store);
+        addRow(L.customer, values.customer);
+
+        const ordersCell = mk('div'); ordersCell.style.gridColumn = '1 / span 2';
+        const ordersLbl = mk('span','label'); ordersLbl.textContent = L.orders + ': ';
+        const ordersField = mk('div','field'); ordersField.textContent = values.orders || '';
+        ordersCell.appendChild(ordersLbl); ordersCell.appendChild(ordersField);
+        grid.appendChild(ordersCell);
+
+        content.appendChild(grid);
+        const p = mk('div','subtext'); p.textContent = L.p1; content.appendChild(p);
+
+        const signs = mk('div','signs');
+        const s1 = mk('div','sign'); s1.textContent = L.sigCustomer;
+        const s2 = mk('div','sign'); s2.textContent = L.sigStore;
+        signs.appendChild(s1); signs.appendChild(s2);
+        content.appendChild(signs);
+
+        page.appendChild(content);
+        doc.body.appendChild(page);
+      }
+
+      function addLabel(){
+        const page = mk('section','page');
+        const stack = mk('div','label-stack');
+        const t2 = mk('div','core'); t2.textContent = 'CO-RE';
+        stack.appendChild(t2);
+        page.appendChild(stack);
+        const note = mk('div','label-note'); note.textContent = L.labelNote;
+        page.appendChild(note);
+        doc.body.appendChild(page);
+      }
+
+      for(let i=0;i<values.copiesReceipt;i++) addReceipt();
+      for(let i=0;i<values.copiesLabel;i++) addLabel();
+
+      if(autoPrint){ w.focus(); w.print(); }
+    }
+
+    document.getElementById('printBtn').addEventListener('click', ()=>{ openPrintWindow(collect(), true); });
+    document.getElementById('previewBtn').addEventListener('click', ()=>{ openPrintWindow(collect(), false); });
+  </script>
+</body>
+</html>
